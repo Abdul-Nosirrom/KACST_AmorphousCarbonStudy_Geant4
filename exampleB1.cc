@@ -28,13 +28,13 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
-#include "QBBC.hh"
 
 #include "G4RunManagerFactory.hh"
 #include "G4SteppingVerbose.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
+#include "PhysicsRegime.hh"
 // #include "Randomize.hh"
 
 using namespace B1;
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   runManager->SetUserInitialization(new DetectorConstruction());
 
   // Physics list
-  auto physicsList = new QBBC;
+  auto physicsList = new KACST::PhysicsRegime;
   physicsList->SetVerboseLevel(1);
   runManager->SetUserInitialization(physicsList);
 

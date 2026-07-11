@@ -1,4 +1,18 @@
+# Build artifacts
 build/
-*.root
 *.o
 *.exe
+
+# Simulation & analysis outputs
+*.root
+*.log
+*.csv
+
+# Python
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Editor / tooling
+.cache/
+.vscode/

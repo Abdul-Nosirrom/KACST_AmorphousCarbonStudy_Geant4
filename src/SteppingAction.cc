@@ -31,39 +31,63 @@
 #include "DetectorConstruction.hh"
 #include "EventAction.hh"
 
-#include "G4Event.hh"
+#include "G4AnalysisManager.hh"
 #include "G4LogicalVolume.hh"
 #include "G4RunManager.hh"
 #include "G4Step.hh"
+#include "G4SystemOfUnits.hh"
 
 namespace B1
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction(EventAction* eventAction) : fEventAction(eventAction) {}
+    SteppingAction::SteppingAction(EventAction* eventAction) : fEventAction(eventAction) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void SteppingAction::UserSteppingAction(const G4Step* step)
-{
-  if (!fScoringVolume) {
-    const auto detConstruction = static_cast<const DetectorConstruction*>(
-      G4RunManager::GetRunManager()->GetUserDetectorConstruction());
-    fScoringVolume = detConstruction->GetScoringVolume();
-  }
+    void SteppingAction::UserSteppingAction(const G4Step* step)
+    {
+        if (!fScoringVolume) {
+            const auto det = static_cast<const DetectorConstruction*>(
+                G4RunManager::GetRunManager()->GetUserDetectorConstruction());
+            fScoringVolume = det->GetScoringVolume();
+        }
 
-  // get volume of the current step
-  G4LogicalVolume* volume =
-    step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
+        auto* an = G4AnalysisManager::Instance();
 
-  // check if we are in scoring volume
-  if (volume != fScoringVolume) return;
+        // (2) FIRST: beam state at slab entry -- must run before any
+        // scoring-volume early return, because the entry step's PRE volume
+        // is the World, not the slab.
+        auto* post = step->GetPostStepPoint();
+        if (step->GetTrack()->GetParentID() == 0 &&
+            post->GetStepStatus() == fGeomBoundary &&
+            post->GetTouchableHandle()->GetVolume() &&
+            post->GetTouchableHandle()->GetVolume()->GetLogicalVolume() == fScoringVolume &&
+            step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume() != fScoringVolume) {
+            auto pos = post->GetPosition();
+            auto dir = post->GetMomentumDirection();
+            an->FillNtupleDColumn(0, 0, pos.x()/mm);
+            an->FillNtupleDColumn(0, 1, pos.y()/mm);
+            an->FillNtupleDColumn(0, 2, dir.x()/dir.z());
+            an->FillNtupleDColumn(0, 3, dir.y()/dir.z());
+            an->FillNtupleDColumn(0, 4, post->GetKineticEnergy()/keV);
+            an->AddNtupleRow(0);
+        }
 
-  // collect energy deposited in this step
-  G4double edepStep = step->GetTotalEnergyDeposit();
-  fEventAction->AddEdep(edepStep);
-}
+        // NOW the scoring-volume gate for everything edep-related
+        G4LogicalVolume* volume =
+            step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
+        if (volume != fScoringVolume) return;
+
+        G4double edep = step->GetTotalEnergyDeposit();
+        fEventAction->AddEdep(edep);
+        if (edep > 0.) {
+            G4double z = 0.5*(step->GetPreStepPoint()->GetPosition().z()
+                            + step->GetPostStepPoint()->GetPosition().z());
+            an->FillH1(0, z, edep);
+        }
+    }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

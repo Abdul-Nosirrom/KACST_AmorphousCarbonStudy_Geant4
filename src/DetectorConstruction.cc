@@ -29,140 +29,50 @@
 #include "DetectorConstruction.hh"
 
 #include "G4Box.hh"
-#include "G4Cons.hh"
 #include "G4LogicalVolume.hh"
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
 #include "G4SystemOfUnits.hh"
-#include "G4Trd.hh"
+#include "G4UserLimits.hh"
+#include <G4Types.hh>
 
-namespace B1
+namespace B1 
 {
+    G4VPhysicalVolume* DetectorConstruction::Construct() 
+    {
+        // Get nist material manager
+        G4NistManager *nist = G4NistManager::Instance();
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+        // Option to switch on/off checking of volumes overlaps. In-case.
+        G4bool checkOverlaps = true;
 
-G4VPhysicalVolume* DetectorConstruction::Construct()
-{
-  // Get nist material manager
-  G4NistManager* nist = G4NistManager::Instance();
+        // World: Vacuum in cm, chamber size or bigger than beam + target dimensions
+        G4double world_sizeXY = 20 * cm, world_sizeZ = 30 * cm; // Size arbitrary, but too small is bad so need to be big enough
+        G4Material *vacuum_mat = nist->FindOrBuildMaterial("G4_Galactic");
+        G4Box* world_bounds = new G4Box("World", 0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ); // Box half-extents
 
-  // Envelope parameters
-  //
-  G4double env_sizeXY = 20 * cm, env_sizeZ = 30 * cm;
-  G4Material* env_mat = nist->FindOrBuildMaterial("G4_WATER");
+        auto world_log = new G4LogicalVolume(world_bounds, vacuum_mat, "World");
+        // Place it
+        auto physWorld = new G4PVPlacement(0, G4ThreeVector(), world_log, "World", 0, false, 0, checkOverlaps);
 
-  // Option to switch on/off checking of volumes overlaps
-  //
-  G4bool checkOverlaps = true;
+        // Carbon-Slab, amorphous carbon w/ denisty 1.8-2.2 g/cm3, 1.9 g/cm3 is used here based on SRIM test + Gupta paper
+        // TODO: Setup messanger to make it a variable for density, to sweep the 1.8-2.2 range
+        G4Material* carbon_mat = nist->BuildMaterialWithNewDensity("AmorphousCarbon", "G4_C", 1.9 * g/cm3); // 1.9 g/cm3 is used here based on SRIM test + Gupta paper
+        G4double carbon_thickness = 150 * nm; // From SRIM range profile, roughly 34nm mean, and low straggling, so 150nm is acceptable and matches roughly gupta paper
+        G4double carbon_size_XY = 10 * cm; // roughly
+        G4double carbon_density = 1.9 * g / cm3;
+        G4Box* carbon_slab_dim = new G4Box("CarbonSlab", 0.5 * carbon_size_XY, 0.5 * carbon_size_XY, 0.5 * carbon_thickness);
+        // Placement - positions box-center, Z-face of carbon slab should be at Z=0, so center is at 0.5*thickness
+        G4ThreeVector carbon_slab_pos = G4ThreeVector(0, 0, 0.5 * carbon_thickness); // Beam travels +Z, placement has Z = 0 be the front-face
+        auto carbon_slab_log = new G4LogicalVolume(carbon_slab_dim, carbon_mat, "CarbonSlab");
+        new G4PVPlacement(0, carbon_slab_pos, carbon_slab_log, "CarbonSlab", world_log, false, 0, checkOverlaps);
 
-  //
-  // World
-  //
-  G4double world_sizeXY = 1.2 * env_sizeXY;
-  G4double world_sizeZ = 1.2 * env_sizeZ;
-  G4Material* world_mat = nist->FindOrBuildMaterial("G4_AIR");
+        carbon_slab_log->SetUserLimits(new G4UserLimits( 0.5 * nm)); // 0.5nm steps through the carbon volume
 
-  auto solidWorld =
-    new G4Box("World",  // its name
-              0.5 * world_sizeXY, 0.5 * world_sizeXY, 0.5 * world_sizeZ);  // its size
+        // Carbon slab is the scoring volume
+        fScoringVolume = carbon_slab_log;
 
-  auto logicWorld = new G4LogicalVolume(solidWorld,  // its solid
-                                        world_mat,  // its material
-                                        "World");  // its name
+        return physWorld;
+    }
 
-  auto physWorld = new G4PVPlacement(nullptr,  // no rotation
-                                     G4ThreeVector(),  // at (0,0,0)
-                                     logicWorld,  // its logical volume
-                                     "World",  // its name
-                                     nullptr,  // its mother  volume
-                                     false,  // no boolean operation
-                                     0,  // copy number
-                                     checkOverlaps);  // overlaps checking
-
-  //
-  // Envelope
-  //
-  auto solidEnv = new G4Box("Envelope",  // its name
-                            0.5 * env_sizeXY, 0.5 * env_sizeXY, 0.5 * env_sizeZ);  // its size
-
-  auto logicEnv = new G4LogicalVolume(solidEnv,  // its solid
-                                      env_mat,  // its material
-                                      "Envelope");  // its name
-
-  new G4PVPlacement(nullptr,  // no rotation
-                    G4ThreeVector(),  // at (0,0,0)
-                    logicEnv,  // its logical volume
-                    "Envelope",  // its name
-                    logicWorld,  // its mother  volume
-                    false,  // no boolean operation
-                    0,  // copy number
-                    checkOverlaps);  // overlaps checking
-
-  //
-  // Shape 1
-  //
-  G4Material* shape1_mat = nist->FindOrBuildMaterial("G4_A-150_TISSUE");
-  G4ThreeVector pos1 = G4ThreeVector(0, 2 * cm, -7 * cm);
-
-  // Conical section shape
-  G4double shape1_rmina = 0. * cm, shape1_rmaxa = 2. * cm;
-  G4double shape1_rminb = 0. * cm, shape1_rmaxb = 4. * cm;
-  G4double shape1_hz = 3. * cm;
-  G4double shape1_phimin = 0. * deg, shape1_phimax = 360. * deg;
-  auto solidShape1 = new G4Cons("Shape1", shape1_rmina, shape1_rmaxa, shape1_rminb, shape1_rmaxb,
-                                shape1_hz, shape1_phimin, shape1_phimax);
-
-  auto logicShape1 = new G4LogicalVolume(solidShape1,  // its solid
-                                         shape1_mat,  // its material
-                                         "Shape1");  // its name
-
-  new G4PVPlacement(nullptr,  // no rotation
-                    pos1,  // at position
-                    logicShape1,  // its logical volume
-                    "Shape1",  // its name
-                    logicEnv,  // its mother  volume
-                    false,  // no boolean operation
-                    0,  // copy number
-                    checkOverlaps);  // overlaps checking
-
-  //
-  // Shape 2
-  //
-  G4Material* shape2_mat = nist->FindOrBuildMaterial("G4_BONE_COMPACT_ICRU");
-  G4ThreeVector pos2 = G4ThreeVector(0, -1 * cm, 7 * cm);
-
-  // Trapezoid shape
-  G4double shape2_dxa = 12 * cm, shape2_dxb = 12 * cm;
-  G4double shape2_dya = 10 * cm, shape2_dyb = 16 * cm;
-  G4double shape2_dz = 6 * cm;
-  auto solidShape2 =
-    new G4Trd("Shape2",  // its name
-              0.5 * shape2_dxa, 0.5 * shape2_dxb, 0.5 * shape2_dya, 0.5 * shape2_dyb,
-              0.5 * shape2_dz);  // its size
-
-  auto logicShape2 = new G4LogicalVolume(solidShape2,  // its solid
-                                         shape2_mat,  // its material
-                                         "Shape2");  // its name
-
-  new G4PVPlacement(nullptr,  // no rotation
-                    pos2,  // at position
-                    logicShape2,  // its logical volume
-                    "Shape2",  // its name
-                    logicEnv,  // its mother  volume
-                    false,  // no boolean operation
-                    0,  // copy number
-                    checkOverlaps);  // overlaps checking
-
-  // Set Shape2 as scoring volume
-  //
-  fScoringVolume = logicShape2;
-
-  //
-  // always return the physical World
-  //
-  return physWorld;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-}  // namespace B1
+} // namespace B1
