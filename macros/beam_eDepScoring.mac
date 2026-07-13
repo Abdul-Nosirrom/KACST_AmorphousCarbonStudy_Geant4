@@ -1,0 +1,9 @@
+/control/execute macros/scoring_mesh.mac
+
+# Prints active scoring mesh data for validation
+/score/list
+
+/run/initialize
+/run/beamOn 10000
+
+/score/dumpQuantityToFile carbonScoringMesh carbonMeshScorer edep_mesh.csv

@@ -1,0 +1,5 @@
+/run/initialize
+/gun/particle ion
+/gun/ion 18 40
+/gun/energy 30 keV
+/run/beamOn 10000

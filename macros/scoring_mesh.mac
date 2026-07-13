@@ -1,0 +1,32 @@
+# Define scoring mesh
+/score/create/boxMesh carbonScoringMesh
+
+# Match carbon - XY: 10x10 cm | Z: 150 nm. Half-Extents
+/score/mesh/boxSize 5. 5. 7.5e-6 cm
+
+# Translate to match slab positioning, moves box center s.t front-face -> Z = 0 (Carbon slab case)
+/score/mesh/translate/xyz 0. 0. 75 nm
+
+# Voxel resolution - If < UserStepLimit then UserStepLimit irrelevant (thickness/voxelRes.z): 10cmx10cmx0.5nm
+/score/mesh/nBin 1 1 300
+
+# Record energy deposition per-voxel grid
+/score/quantity/energyDeposit carbonMeshScorer keV
+
+# Charged particle filter via /score/filter/charged carbonScoringMeshFilter, don't need we want secondary tracking which are neutral carbons 
+# Kinetic energy filter /score/filter/kineticEnergy carbonKEFilter eLow eHigh unit
+
+# Close mesh
+/score/close
+
+# Draw the scorer - drawColumn or drawProjection - try both (cmap -> defaultLinearColorMap or logColorMap)
+# Mesh heat-map
+# /score/drawProjection carbonScoringMesh carbonMeshScorer defaultLinearColorMap
+
+# Depth-slices heat-map
+# /score/drawColumn carbonScoringMesh carbonMeshScorer <plane> <column>
+
+# Output to file for comparison with manual scoring / energy accumulator via analysisManager (CSV)
+#/score/dumpQuantityToFile carbonScoringMesh carbonMeshScorer edep_mesh.csv
+
+

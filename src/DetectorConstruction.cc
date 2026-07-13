@@ -67,7 +67,8 @@ namespace B1
         auto carbon_slab_log = new G4LogicalVolume(carbon_slab_dim, carbon_mat, "CarbonSlab");
         new G4PVPlacement(0, carbon_slab_pos, carbon_slab_log, "CarbonSlab", world_log, false, 0, checkOverlaps);
 
-        carbon_slab_log->SetUserLimits(new G4UserLimits( 0.5 * nm)); // 0.5nm steps through the carbon volume
+        // Unnecessary with voxelized scoring mesh, will just take min(userLimit, voxelSize) for step size
+        // carbon_slab_log->SetUserLimits(new G4UserLimits( 0.5 * nm)); // 0.5nm steps through the carbon volume
 
         // Carbon slab is the scoring volume
         fScoringVolume = carbon_slab_log;
