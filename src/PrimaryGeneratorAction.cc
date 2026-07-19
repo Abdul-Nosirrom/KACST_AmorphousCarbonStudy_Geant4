@@ -68,11 +68,11 @@ namespace B1
     void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     {
         // Beam parameters (messenger candidates later)
-        G4double fXp = 0.2e-3, fSigmaXp = 0.1e-3;   // slopes [rad]: 0.2 +/- 0.1 mrad
-        G4double fYp = 0.2e-3, fSigmaYp = 0.1e-3;
+        G4double fXp = 0*.2e-3, fSigmaXp = 0*0.1e-3;   // slopes [rad]: 0.2 +/- 0.1 mrad
+        G4double fYp = 0*0.2e-3, fSigmaYp = 0*0.1e-3;
         G4double fX  = 0.*mm,  fSigmaX  = 0.5*mm;
         G4double fY  = 0.*mm,  fSigmaY  = 0.5*mm;
-        G4double fEnergy = 25.*keV, fRelSigmaE = 0.01;
+        G4double fEnergy = 25.*keV, fRelSigmaE = 0.;
         G4double fZ0 = -1.*mm;                       // start upstream in vacuum
 
         fParticleGun->SetParticleDefinition(

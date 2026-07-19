@@ -1,0 +1,36 @@
+====== Ar (10) into Carbon Slab                 =======
+        SRIM-2013.00
+=======================================
+      Data  of  TRIM  Calculation      
+=======================================
+Ion = Ar (18)   Ion Mass= 039.9620
+Energy  = 2500000.E-05 keV
+Ion Angle to Surface = 0 degrees
+============= TARGET MATERIAL ======================================
+  Layer # 1 - Carbon Slab
+  Layer # 1 - Bottom Depth=     2.E+03 A
+  Layer # 1- Density = 9.526E22 atoms/cm3 = 1.9 g/cm3
+  Layer # 1-  C = 100  Atomic Percent = 100  Mass Percent
+====================================================================
+Target energies for target atom =  C
+    Displacement = 28 eV, Binding = 3 eV, Surface = 7.41 eV
+====================================================================
+Depth Range of Tabulated Data=  000000.E+00  -  150000.E-02  Angstroms
+====================================================================
+Total Ions calculated =  010000
+Average Range         =   29509.E-02 Angstroms
+Average Straggling    =   84366.E-03 Angstroms
+Average Vacancy/Ion   =   22631.E-02
+====================================================================
+Total Backscattered Ions=  0 
+Total Transmitted Ions  =  0 
+====================================================================
+See files SRIM Outputs\*.txt for tables :
+   TDATA.txt    -- Details of the calculation.
+   RANGE.txt    -- Final distribution of Ions/Recoils
+   VACANCY.txt  -- Distribution of Vacancies
+   IONIZ.txt    -- Distribution of Ionization
+   PHONON.txt   -- Distribution of Phonons
+   E2RECOIL.txt -- Energy transferred to recoils
+   NOVAC.txt    -- Replacement collisions
+   LATERAL.txt  -- Lateral Spread of Ions

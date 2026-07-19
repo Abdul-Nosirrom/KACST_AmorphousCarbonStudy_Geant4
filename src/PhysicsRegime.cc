@@ -2,6 +2,7 @@
 
 #include "G4EmStandardPhysics_option4.hh"
 #include "G4EmParameters.hh"
+#include "G4EmStandardPhysics_option3.hh"
 #include "G4ProductionCutsTable.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4StepLimiterPhysics.hh"
@@ -14,22 +15,23 @@
 #include "G4UniversalFluctuation.hh"
 #include "G4GenericIon.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4IonParametrisedLossModel.hh"
 #include "G4PhysicalConstants.hh"
 
 namespace KACST 
 {
 
-    class IonBraggFix : public G4VPhysicsConstructor 
+    class IonLowEnergyFix  : public G4VPhysicsConstructor 
     {
     public:
-        IonBraggFix() : G4VPhysicsConstructor("IonBraggFix") {}
+        IonLowEnergyFix () : G4VPhysicsConstructor("IonLowEnergyFix") {}
         void ConstructParticle() override {}
         void ConstructProcess() override {
             auto* cfg = G4LossTableManager::Instance()->EmConfigurator();
             // 2 MeV/u boundary, mass-scaled to total kinetic energy (TestEm7 pattern)
             G4double eth = 2.*MeV * G4GenericIon::GenericIon()->GetPDGMass() / proton_mass_c2;
             cfg->SetExtraEmModel("GenericIon", "ionIoni",
-                                new G4BraggIonModel(), "", 0.0, eth,
+                                new G4IonParametrisedLossModel(), "", 0.0, eth,
                                 new G4IonFluctuations());
             cfg->SetExtraEmModel("GenericIon", "ionIoni",
                                 new G4BetheBlochModel(), "", eth, 100*TeV,
@@ -42,9 +44,10 @@ namespace KACST
         // The one registered constructor: most accurate EM, includes
         // ICRU-table ion ionisation (Se) and G4NuclearStopping (Sn).
         RegisterPhysics(new G4EmStandardPhysics_option4());
+        RegisterPhysics(new G4EmStandardPhysics_option3());
 
         RegisterPhysics(new G4StepLimiterPhysics()); // Step limiter to ensure step size is limited to the cut value, otherwise Geant4 will take large steps and miss energy deposition in the thin target.
-        RegisterPhysics(new IonBraggFix()); 
+        RegisterPhysics(new IonLowEnergyFix ()); 
         // No hadronic physics: at 25-50 keV there are no nuclear
         // reactions. Omission is correct, not an approximation.
 

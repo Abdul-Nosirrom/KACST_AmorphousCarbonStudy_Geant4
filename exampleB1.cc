@@ -36,6 +36,8 @@
 #include "G4VisExecutive.hh"
 #include "PhysicsRegime.hh"
 #include "G4ScoringManager.hh"
+#include "G4PhysListFactory.hh"
+#include "G4SystemOfUnits.hh"
 // #include "Randomize.hh"
 
 using namespace B1;
@@ -71,6 +73,10 @@ int main(int argc, char** argv)
     runManager->SetUserInitialization(new DetectorConstruction());
 
     // Physics list
+    //G4PhysListFactory factory;
+    //auto* physicsList = factory.GetReferencePhysList("QGSP_BIC_HP_EMZ");
+    //physicsList->SetDefaultCutValue(0.5*nm);
+    //runManager->SetUserInitialization(physicsList);
     auto physicsList = new KACST::PhysicsRegime;
     physicsList->SetVerboseLevel(1);
     runManager->SetUserInitialization(physicsList);
