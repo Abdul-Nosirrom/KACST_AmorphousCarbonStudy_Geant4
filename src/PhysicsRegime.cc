@@ -3,6 +3,7 @@
 #include "G4EmStandardPhysics_option4.hh"
 #include "G4EmParameters.hh"
 #include "G4EmStandardPhysics_option3.hh"
+#include "G4EmStandardPhysicsSS.hh"
 #include "G4ProductionCutsTable.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4StepLimiterPhysics.hh"

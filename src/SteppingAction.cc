@@ -56,6 +56,13 @@ namespace B1
 
         auto* an = G4AnalysisManager::Instance();
 
+        // record primary's endpoint: fires on the step where the primary dies
+        auto* trk = step->GetTrack();
+        if (trk->GetParentID() == 0 &&
+            trk->GetTrackStatus() != fAlive) {
+            auto p = step->GetPostStepPoint()->GetPosition();
+            fEventAction->SetPrimaryEndPos(p.x(), p.y(), p.z());
+}
         // (2) FIRST: beam state at slab entry -- must run before any
         // scoring-volume early return, because the entry step's PRE volume
         // is the World, not the slab.
@@ -81,11 +88,14 @@ namespace B1
         if (volume != fScoringVolume) return;
 
         G4double edep = step->GetTotalEnergyDeposit();
+        G4double niel = step->GetNonIonizingEnergyDeposit();   // nuclear-channel share of this step
         fEventAction->AddEdep(edep);
         if (edep > 0.) {
             G4double z = 0.5*(step->GetPreStepPoint()->GetPosition().z()
                             + step->GetPostStepPoint()->GetPosition().z());
             an->FillH1(0, z, edep);
+            if (niel > 0.)        an->FillH1(1, z, niel);
+            if (edep - niel > 0.) an->FillH1(2, z, edep - niel);
         }
     }
 

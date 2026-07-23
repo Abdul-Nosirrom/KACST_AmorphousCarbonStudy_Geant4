@@ -27,7 +27,7 @@
 /// \brief Implementation of the B1::EventAction class
 
 #include "EventAction.hh"
-
+#include "G4AnalysisManager.hh"
 #include "RunAction.hh"
 
 namespace B1
@@ -42,6 +42,9 @@ namespace B1
     void EventAction::BeginOfEventAction(const G4Event*)
     {
         fEdep = 0.;
+
+        // Reset final position block
+        finX = finY = finZ = 0.;
     }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -50,6 +53,13 @@ namespace B1
     {
         // accumulate statistics in run action
         fRunAction->AddEdep(fEdep);
+
+        // Record final position of primary particle in the "primary_end" ntuple
+        auto* an = G4AnalysisManager::Instance();
+        an->FillNtupleDColumn(1, 0, finX);
+        an->FillNtupleDColumn(1, 1, finY);
+        an->FillNtupleDColumn(1, 2, finZ);
+        an->AddNtupleRow(1);
     }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

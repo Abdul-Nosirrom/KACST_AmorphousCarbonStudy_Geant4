@@ -76,6 +76,9 @@ namespace B1
 
         // H1 id 0: edep vs depth, 300 bins over 0..150nm (0.5nm spacing)
         an->CreateH1("EdepZ", "Energy deposition vs depth", 300, 0., 150.*nm);
+        // H1 id 0: EdepZ (exists)
+        an->CreateH1("EdepZ_NIEL", "Non-ionizing energy deposition vs depth", 300, 0., 150.*nm); // id 1
+        an->CreateH1("EdepZ_ion",  "Ionizing energy deposition vs depth",     300, 0., 150.*nm); // id 2
 
         // Ntuple id 0: per-primary entry state at z = 0
         an->CreateNtuple("beam", "primary state at slab entry");
@@ -84,6 +87,13 @@ namespace B1
         an->CreateNtupleDColumn("xp");   // col 2, x' = px/pz
         an->CreateNtupleDColumn("yp");   // col 3
         an->CreateNtupleDColumn("E");    // col 4, kinetic energy
+        an->FinishNtuple();
+
+        // Range Profile Tracking per-event: final position of primary particle
+        an->CreateNtuple("range", "final position of primary particle");
+        an->CreateNtupleDColumn("xf");    // col 0
+        an->CreateNtupleDColumn("yf");    // col 1
+        an->CreateNtupleDColumn("zf");    // col 2
         an->FinishNtuple();
     }
 

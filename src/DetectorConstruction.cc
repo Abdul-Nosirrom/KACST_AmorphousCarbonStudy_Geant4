@@ -68,7 +68,7 @@ namespace B1
         new G4PVPlacement(0, carbon_slab_pos, carbon_slab_log, "CarbonSlab", world_log, false, 0, checkOverlaps);
 
         // Unnecessary with voxelized scoring mesh, will just take min(userLimit, voxelSize) for step size
-        // carbon_slab_log->SetUserLimits(new G4UserLimits( 0.5 * nm)); // 0.5nm steps through the carbon volume
+        //carbon_slab_log->SetUserLimits(new G4UserLimits( nm)); // 0.5nm steps through the carbon volume
 
         // Carbon slab is the scoring volume
         fScoringVolume = carbon_slab_log;

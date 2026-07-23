@@ -52,9 +52,14 @@ class EventAction : public G4UserEventAction
 
     void AddEdep(G4double edep) { fEdep += edep; }
 
+    void SetPrimaryEndPos(G4double x, G4double y, G4double z) { finX = x; finY = y; finZ = z; }
+
   private:
     RunAction* fRunAction = nullptr;
     G4double fEdep = 0.;
+
+    // Range Profile Tracking per-event
+    G4double finX, finY, finZ;  // final position of primary particle
 };
 
 }  // namespace B1
